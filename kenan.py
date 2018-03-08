@@ -60,7 +60,7 @@ font1 = pygame.font.Font("Fonts/ARCADECLASSIC.TTF",60)
 font2 = pygame.font.Font("Fonts/ARCADECLASSIC.TTF",30)
 font3 = pygame.font.Font("Fonts/ka1.ttf", 60)
 text1 = font3.render("Citadel", True,white)
-text3 = font2.render("by    SEDAT AND BOIS", True,white)
+text3 = font2.render("by    TEROBERO", True,white)
 text4 = font.render("GAME OVER", True,white)
 text5 = font.render("YOU WIN", True,white)
 
@@ -68,7 +68,7 @@ def bg(): #draws the background
     screen.blit(background,(0,0))
     text2 = font.render("Score  " + str(score), True,white)
     screen.blit(background,(0,0))
-    pygame.draw.rect(screen,white,Rect((150,150),(640,480)),2)
+    pygame.draw.rect(screen,white,Rect((150,150),(640,480)),2) #150 - 150 to 790 - 630 
     screen.blit(text1,(300,30))
     screen.blit(text2,(825,150))
     screen.blit(text3,(500,680))
@@ -112,6 +112,10 @@ grid = [[0, 0, 0, 0, 0, 0, 3, 0, 0, 0], #1 = robot, 2 = switch/scale, 3 = cube
 x = 0 # 0-11
 y = 5 # 0-7
 
+_x = 150
+_y = 630
+grabbed = False
+
 while True:
     if not GPIO.input(gamePins.red):
         execfile('launchGPIO.py')
@@ -130,31 +134,39 @@ while True:
             if y - 1 >= 0:
                 if grid[y-1][x] is not 2:
                     grid[y][x] = 0
+                    if grid[y-1][x] == 3:
+                    	level = 2
+                    	score += 50
                     grid[y-1][x] = 1
                     y = y - 1
         elif not GPIO.input(gamePins.down):
             if y + 1 <= 5:
                 if grid[y+1][x] is not 2:
                     grid[y][x] = 0
+                    if grid[y+1][x] == 3:
+                    	level = 2
+                    	score += 50
                     grid[y+1][x] = 1
                     y = y + 1
         elif not GPIO.input(gamePins.left):
             if x - 1 >= 0:
                 if grid[y][x-1] is not 2:
                     grid[y][x] = 0
+                    if grid[y][x-1] == 3:
+                    	level = 2
+                    	score += 50
                     grid[y][x-1] = 1
                     x = x - 1
         elif not GPIO.input(gamePins.right):
             if x + 1 <= 9:
                 if grid[y][x+1] is not 2:
                     grid[y][x] = 0
+                    if grid[y][x+1] == 3:
+                    	level = 2
+                    	score += 50
                     grid[y][x+1] = 1
                     x = x + 1
 
-
-        if grid[y][x] == 3:
-            level = 2
-            score += 50
 
         sizey = 80
         sizex = 64
@@ -173,24 +185,59 @@ while True:
 
 
 
+
     if level == 2:
         for event in pygame.event.get():
             if event.type == KEYDOWN:
                 if event.key == K_q:
                     exit()
-                if event.key == K_w:
-                    if y - 1 >= 0:
-                        if grid[y-1][x] is not 2:
-                            grid[y][x] = 0
-                            grid[y-1][x] = 1
-                elif event.key == K_s:
-                    if y + 1 <= 5:
-                        if grid[y+1][x] is not 2:
-                            grid[y][x] = 0
-                            grid[y+1][x] = 1
+
+        #150 - 150 to 790 - 630
+        #robot 150 - 400 for x, 150 to 630 for y
+
+        pygame.draw.rect(screen, (255,0,0), Rect((150,150), (250,480))) #robot
+
+        pygame.draw.rect(screen, (255,255,255), Rect((_x, _y), (300, 50))) #kol
+
+        if grabbed:
+        	pygame.draw.rect(screen, (255,255,0), Rect((640 - _x, 530 - _y), (100, 100))) #kup
+
+    	else:
+			pygame.draw.rect(screen, (), Rect((640, 530), (100, 100))) #kup
+
+        if not GPIO.input(gamePins.green) and not grabbed:
+        	if _x  >= 640 and _y >= 530:
+        		grabbed = True
 
 
-        #if not GPIO.input(gamePins.green):
+        elif not GPIO.input(gamePins.up):
+        	if _y >= 100:
+        		_y -= 5
+
+        elif not GPIO.input(gamePins.down):
+        	if _y <= 570:
+        		_y += 5
+
+        elif not GPIO.input(gamePins.left):
+        	if _x >= 160:
+        		_x -= 5
+
+        elif not GPIO.input(gamePins.right):
+        	if _x <= 480:
+        		_x += 5
+
+        if grabbed and _y <= 200:
+        	level = 3
+        	score += 50
+
+
+
+
+
+    if level == 3:
+
+
+
 
     '''
     if gameEnd:
